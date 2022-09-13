@@ -10,12 +10,12 @@ import Revoked from "../assets/revoked.svg";
 import Expired from "../assets/expired.svg";
 import "../styles/certificate.scss";
 
-const Certificate = ({ ipfsHash, certkey }) => {
+const Certificate = ({ ipfsHash}) => {
 	const { contract } = useContext(Web3Context);
 
-	const resource = fetchCertData(ipfsHash, certkey, contract);
+	const resource = fetchCertData(ipfsHash, contract);
 
-	const link = `https://certify-v1.netlify.app/verify/?ipfsHash=${ipfsHash}&certkey=${certkey}`;
+	const link = `localhost:3000/verify/?ipfsHash=${ipfsHash}`;
 
 	return (
 		<Suspense fallback={<PageLoader />}>

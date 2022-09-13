@@ -1,63 +1,73 @@
-// const ipfs = require("nano-ipfs-store").at("https://ipfs.infura.io:5001");
-import { create, CID, IPFSHTTPClient } from 'ipfs-http-client';
+const pinataSDK = require("@pinata/sdk")
+const axios = require("axios")
+const CryptoJS = require('crypto-js')
+const fs = require("fs")
+const FormData = require("form-data")
+const basePathConverter = require('base-path-converter')
+// const { response } = require("express")
+const { AES } = require("crypto-js")
 
-let CryptoJS = require("crypto-js");
-let AES = CryptoJS.AES;
+const PbKey = 'ebadb8f071b09d4857c0';
+const SKey = 'd236be0dc89a05ccb64679685829aa3376d430861e4b20e825f3d8b4b1772c65';
+const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJkZjg5ZWY3OC0yMWQ2LTRlZjgtYjU3NC02MWJiOTllYTE3ZTAiLCJlbWFpbCI6ImFiaGluYXYyMDAxNkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiZWJhZGI4ZjA3MWIwOWQ0ODU3YzAiLCJzY29wZWRLZXlTZWNyZXQiOiJkMjM2YmUwZGM4OWEwNWNjYjY0Njc5Njg1ODI5YWEzMzc2ZDQzMDg2MWU0YjIwZTgyNWYzZDhiNGIxNzcyYzY1IiwiaWF0IjoxNjYzMDk1MDQ3fQ.0B0vAZEX3kko2DmqmgPLLZQwVwYAlgvr7isBRbQcmLY';
 
-const projectId = '2Eiti0yO7VhFarzYmKLxkIpy6fx';
-const projectSecret = 'dd33985fca839d444ef5be451385024c';
-const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+const pinata = pinataSDK(PbKey, SKey);
 
-let ipfs: IPFSHTTPClient | undefined;
-
-try {
-	ipfs = create({
-		    host:'ipfs.infura.io',
-		    port: 5001,
-		    protocol:'https',
-		    headers: {
-		        authorization: auth,
-		    },
-	});
-} catch (error) {
-	console.error("IPFS error ", error);
-	ipfs = undefined;
-}
-
-// const ipfs = create({
-//     host:'ipfs.infura.io',
-//     port: 5001,
-//     protocol:'https',
-//     headers: {
-//         authorization: auth,
-//     },
-// });
-
-async function upload(data) {
-	const json = JSON.stringify(data);
-	const certkey = getRandomKey();
-	const encrypted = encrypt(json, certkey);
-	console.log(ipfs)
-	// const ipfsHash = await ipfs.add(encrypted);
-	return { ipfsHash: "ddd", certkey };
-}
+pinata.testAuthentication().then((result) => {
+    console.log(result);
+}).catch(err => {
+    console.log(err);
+});
 
 function encrypt(data, key) {
-	return AES.encrypt(data, key).toString();
+    return AES.encrypt(data, key).toString();
 }
 
-function getRandomKey() {
-	return (Math.random() + 1).toString(36).substring(3).toUpperCase();
+function getRandomKey(){
+    return (Math.random() + 1).toString(36).substring(3).toUpperCase();
 }
 
 function decrypt(data, key) {
-	const a = AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
-	// console.log(a);
-	return a;
+    return AES.decrypt(data, key).toString(CryptoJS.enc.Utf8);
+}
+async function upload(cert, pinataApiKey = PbKey, pinataSecretApiKey = SKey){
+    const json = JSON.stringify(cert);
+    const certKey = getRandomKey();
+    // const encrypted = encrypt(json, certKey);
+    const encrypted = json;
+
+    const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
+    return axios.post(url, encrypted, {
+        headers: {
+            pinata_api_key: pinataApiKey,
+            pinata_secret_api_key: pinataSecretApiKey
+        }
+    }).then(function (response) {
+
+        console.log({response, certKey})
+        return {ipfsHash: response.data.IpfsHash, certKey}
+        console.log("====>FILE UPLOADED<====");
+    }).catch(function (error) {
+        console.error(error);
+    });
 }
 
-async function retrieve(ipfshash, key) {
-	const data = await ipfs.cat(ipfshash);
-	return decrypt(data, key);
+async function retrieve(hash) {
+    const uri = `https://gateway.pinata.cloud/ipfs/${hash}`;
+    const res = await axios.get(uri);
+    const data = res.data;
+    
+    return decrypt(data);
 }
-export { upload, retrieve };
+
+module.exports = {upload, retrieve}
+
+const defCert = {
+    "AdditionalNotes": "",
+    "BeneficiaryName": "Kylo Ren",
+    "CertificateDescription": "this is bkt4006 quali",
+    "ExpirationDate": "2024-12-30",
+    "InstituteAuthorityName": "VIT University"
+  }
+
+  upload(defCert)
