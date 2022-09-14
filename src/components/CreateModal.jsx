@@ -60,7 +60,7 @@ const Modal = ({ modalData: { mode, data, receipt }, setModalData }) => {
 						<br />
 					</div>
 					<Suspense fallback={<PageLoader />}>
-						<Certificate ipfsHash={data?.ipfsHash} certkey={data?.certkey} />
+						{/* <Certificate ipfsHash={data?.ipfsHash} /> */}
 					</Suspense>
 				</div>
 			</div>

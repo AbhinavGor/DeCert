@@ -53,11 +53,13 @@ async function upload(cert, pinataApiKey = PbKey, pinataSecretApiKey = SKey){
 }
 
 async function retrieve(hash) {
-    const uri = `https://gateway.pinata.cloud/ipfs/${hash}`;
-    const res = await axios.get(uri);
-    const data = res.data;
+    // const ipfsHash = hash.ipfsHash;
+    // console.log({hash: ipfsHash})
+    // const uri = `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`;
+    // const res = await axios.get(uri);
+    // const data = res.data;
     
-    return decrypt(data);
+    return hash;
 }
 
 module.exports = {upload, retrieve}
@@ -70,4 +72,4 @@ const defCert = {
     "InstituteAuthorityName": "VIT University"
   }
 
-  upload(defCert)
+//   upload(defCert)

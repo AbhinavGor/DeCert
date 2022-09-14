@@ -8,11 +8,13 @@ const VerifyForm = lazy(() => import("./VerifyForm"));
 const Verify = () => {
 	const [searchParams] = useSearchParams();
 
-	return !!searchParams.has("certkey") & !!searchParams.has("ipfsHash") ? (
+	const ipfsHash = searchParams.get('ipfsHash');
+	console.log({params: typeof(ipfsHash)})
+
+	return searchParams.has("ipfsHash") ? (
 		<div className="view">
 			<Certificate
-				certkey={searchParams.get("certkey")}
-				ipfsHash={searchParams.get("ipfsHash")}
+				ipfsHash={ipfsHash}
 			/>
 		</div>
 	) : (
