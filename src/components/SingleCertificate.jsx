@@ -25,7 +25,7 @@ const SingleCertificate = () => {
 	const onSubmit = async (data) => {
 		if (accountAddress) {
 			setModalData({ mode: "loading" });
-			const { ipfsHash, certkey } = await upload(data);
+			const {ipfsHash, certkey} = await upload(data);
 
 			const expDate = getValues("ExpirationDate")
 				? Math.floor(new Date(getValues("ExpirationDate")).getTime() / 1000)
